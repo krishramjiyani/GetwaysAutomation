@@ -1,30 +1,59 @@
-const {test, expect} = require("@playwright/test");
+const { test, expect } = require('@playwright/test');
 
-test('GETWAYS Login flow test', async({page})=>{
-    //goto login page
-    
-    await page.goto('https://skynbliss.co/login');
+test.setTimeout(60000); // Set per test timeout
 
-    //enter email and press next
+test('GETWAYS Login flow test', async ({ page }) => {
+  // Go to login page with safe loading
+  await page.goto('https://skynbliss.co/login', {
+    waitUntil: 'domcontentloaded',
+    timeout: 60000
+  });
 
-    const emailInput = page.locator('input[placeholder="Email / Phone"]');
-    await expect(emailInput).toBeVisible();
-    await emailInput.fill('TestPlayer@gmail.com');
+  // Step 1: Fill email
+  const emailInput = page.locator('input[name="emailPhone"]');
+  await expect(emailInput).toBeVisible();
+  await emailInput.fill('TestPlayer@gmail.com');
 
-    const nextButton = page.locator('button', {hasText: 'NEXT'});
-    await nextButton.click();
+  // Step 2: Click NEXT
+  const nextButton = page.getByRole('button', { name: 'NEXT' });
+  await expect(nextButton).toBeEnabled();
+  await nextButton.click();
 
-    //wait for navigation to password page
-    await expect(page).toHaveURL(/loginEmail/);
+  // Step 3: Confirm password screen
+  const passwordHeader = page.getByRole('heading', { name: 'Sign in to your Account' });
+  await expect(passwordHeader).toBeVisible();
 
-    //Validate email field is filled and disabled
+  // Step 4: BACK button
+  const backButton = page.getByRole('button', { name: 'Back' });
+  await expect(backButton).toBeVisible();
+  await backButton.click();
 
-    const disableEmail = page.locator('input[disabled]');
-    await expect(disableEmail).toHaveValue('TestPlayer@gmail.com');
+  // Step 5: Re-enter email
+  await expect(emailInput).toBeVisible();
+  await emailInput.fill('TestPlayer@gmail.com');
+  await nextButton.click();
 
-    //Fill password
-    const passwordInput = page.locator('input[type="password"]');
-    await expect(passwordInput).toBeVisible();
+  // Step 6: Confirm email disabled
+  const disableEmail = page.locator('input[disabled]');
+  await expect(disableEmail).toHaveValue('TestPlayer@gmail.com');
 
-    // new chanages
-})
+  // Step 7: Fill password
+  const passwordInput = page.locator('input[type="password"]');
+  await expect(passwordInput).toBeVisible();
+  await passwordInput.fill('Test@123');
+
+  // Step 8: Check Remember me
+  const rememberMe = page.locator('input[type="checkbox"]');
+  await rememberMe.check();
+
+  // Step 9: Validate links
+  await expect(page.getByText('Watch Videos')).toBeVisible();
+
+  // Step 10: Click LOGIN button
+  const loginButton = page.getByRole('button', { name: 'LOGIN' });
+  await expect(loginButton).toBeEnabled();
+  await loginButton.click();
+
+  // Step 11: Validate final page
+  await expect(page).toHaveTitle(/Getways/i, { timeout: 10000 });
+});
