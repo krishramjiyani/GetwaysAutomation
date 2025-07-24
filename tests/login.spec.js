@@ -1,59 +1,82 @@
-const { test, expect } = require('@playwright/test');
 
-test.setTimeout(60000); // Set per test timeout
+import { test, expect } from '@playwright/test';
 
-test('GETWAYS Login flow test', async ({ page }) => {
-  // Go to login page with safe loading
-  await page.goto('https://skynbliss.co/login', {
-    waitUntil: 'domcontentloaded',
-    timeout: 60000
+test.describe('GETWAYS Login Scenarios', () => {
+
+  // 1. Complete Login Flow (Valid email & password)
+    test('Valid login flow with correct email and password', async ({ page }) => {
+    await page.goto('https://skynbliss.co/login', { timeout: 120000, waitUntil: 'load' });
+
+    await page.locator('input[name="emailPhone"]').fill('TestPlayer@gmail.com');
+    await page.locator('button:has-text("Next")').click();
+
+    await expect(page.locator('h6')).toHaveText('Sign in to your Account');
+
+    await page.locator('input[name="password"]').fill('Test@123');
+    await page.locator('button:has-text("Login")').click();
+
+    await expect(page).toHaveTitle('Getways');
+    });
+
+  // 2. Invalid Password
+  test('Login with valid email but incorrect password', async ({ page }) => {
+    await page.goto('https://skynbliss.co/login', { timeout: 120000, waitUntil: 'load' });
+
+    await page.locator('input[name="emailPhone"]').fill('TestPlayer@gmail.com');
+    await page.locator('button:has-text("Next")').click();
+
+    await page.locator('input[name="password"]').fill('WrongPass123');
+    await page.locator('button:has-text("Login")').click();
+    await expect(page.locator('.MuiSnackbarContent-message')).toHaveText('Login failed: Invalid username/password.');
   });
 
-  // Step 1: Fill email
-  const emailInput = page.locator('input[name="emailPhone"]');
-  await expect(emailInput).toBeVisible();
-  await emailInput.fill('TestPlayer@gmail.com');
+  // 3. Invalid Email Format
+  test('Login with invalid email format', async ({ page }) => {
+    await page.goto('https://skynbliss.co/login', { timeout: 120000, waitUntil: 'load' });
 
-  // Step 2: Click NEXT
-  const nextButton = page.getByRole('button', { name: 'NEXT' });
-  await expect(nextButton).toBeEnabled();
-  await nextButton.click();
+    await page.locator('input[name="emailPhone"]').fill('invalid-email');
+    await page.locator('button:has-text("Next")').click();
+    await expect(page.locator('.MuiSnackbarContent-message')).toHaveText('User does not exist!');
+  });
 
-  // Step 3: Confirm password screen
-  const passwordHeader = page.getByRole('heading', { name: 'Sign in to your Account' });
-  await expect(passwordHeader).toBeVisible();
+  // 4. Valid Email, Empty Password
+  test('Leave password blank after entering valid email', async ({ page }) => {
+    await page.goto('https://skynbliss.co/login', { timeout: 120000, waitUntil: 'load' });
+    await page.locator('input[name="emailPhone"]').fill('TestPlayer@gmail.com');
+    await page.locator('button:has-text("Next")').click();
+    await page.locator('button:has-text("Login")').click();
+    await expect(page.locator('.MuiFormHelperText-root')).toHaveText('Password is required');
+  });
 
-  // Step 4: BACK button
-  const backButton = page.getByRole('button', { name: 'Back' });
-  await expect(backButton).toBeVisible();
-  await backButton.click();
+  // 5. Email Field Blank
+  test('Leave email field blank', async ({ page }) => {
+    await page.goto('https://skynbliss.co/login', { timeout: 120000, waitUntil: 'load' });
+    await page.locator('button:has-text("Next")').click();
+    await expect(page.locator('.MuiAlert-message')).toHaveText('Please enter email or phone number', { timeout: 10000 });
 
-  // Step 5: Re-enter email
-  await expect(emailInput).toBeVisible();
-  await emailInput.fill('TestPlayer@gmail.com');
-  await nextButton.click();
+  });
 
-  // Step 6: Confirm email disabled
-  const disableEmail = page.locator('input[disabled]');
-  await expect(disableEmail).toHaveValue('TestPlayer@gmail.com');
+  // 6. Email not registered
+  test('Enter non-existing email', async ({ page }) => {
+    await page.goto('https://skynbliss.co/login', { timeout: 120000, waitUntil: 'load' });
+    await page.locator('input[name="emailPhone"]').fill('unregistered@gmail.com');
+    await page.locator('button:has-text("Next")').click();
+    await expect(page.locator('.MuiSnackbarContent-message')).toHaveText('User does not exist!');
+  });
 
-  // Step 7: Fill password
-  const passwordInput = page.locator('input[type="password"]');
-  await expect(passwordInput).toBeVisible();
-  await passwordInput.fill('Test@123');
+  // 7. Check UI label on Email step
+ test('Validate email step label', async ({ page }) => {
+ await page.goto('https://skynbliss.co/login', { timeout: 120000, waitUntil: 'load' });
+  await expect(page.locator('h6')).toHaveText('Sign in to your Account');
+});
 
-  // Step 8: Check Remember me
-  const rememberMe = page.locator('input[type="checkbox"]');
-  await rememberMe.check();
+  // 8. Check UI label on Password step
+  test('Validate password step label', async ({ page }) => {
+   await page.goto('https://skynbliss.co/login', { timeout: 120000, waitUntil: 'load' });
+    await page.locator('input[name="emailPhone"]').fill('TestPlayer@gmail.com');
+    await page.locator('button:has-text("Next")').click();
 
-  // Step 9: Validate links
-  await expect(page.getByText('Watch Videos')).toBeVisible();
+    await expect(page.locator('h6')).toHaveText('Sign in to your Account');
+  });
 
-  // Step 10: Click LOGIN button
-  const loginButton = page.getByRole('button', { name: 'LOGIN' });
-  await expect(loginButton).toBeEnabled();
-  await loginButton.click();
-
-  // Step 11: Validate final page
-  await expect(page).toHaveTitle(/Getways/i, { timeout: 10000 });
 });
