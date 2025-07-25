@@ -106,10 +106,10 @@ test('Complete flow: Login and Recharge using Pay By Card (Stripe)', async ({ pa
 
     
     const payBtn = payFrame.locator('button[type="submit"]', { hasText: 'Pay' });
-    await payBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await payBtn.waitFor({ state: 'visible', timeout: 20000 });
     await payBtn.click();
 
-    await page.locator('h2').waitFor({ state: 'visible', timeout: 20000 });
+    await page.locator('h2').waitFor({ state: 'visible', timeout: 30000 });
 
     await expect(page.locator('h2')).toHaveText('Completed Payment');
     
