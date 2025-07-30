@@ -58,17 +58,25 @@ test('Cashout', async ({ page }) => {
     //  // After clicking "Next" on gift card step
     // await expect(page.getByRole('heading', { name: 'Confirm Your Details' })).toBeVisible();
 
-    // Check fields are disabled
-    const firstName = page.locator('input[id=":r3k:"]');
-    const lastName = page.locator('input[id=":r3m:"]');
-    const email = page.locator('input[id=":r3n:"]');
+    // Use more robust locators based on label texts or aria attributes
+    const firstName = page.getByLabel('First Name');
+    const lastName = page.getByLabel('Last Name');
+    const email = page.getByLabel('Email');
 
+    // Assert all fields are visible and disabled
+    await expect(firstName).toBeVisible();
     await expect(firstName).toBeDisabled();
+
+    await expect(lastName).toBeVisible();
     await expect(lastName).toBeDisabled();
+
+    await expect(email).toBeVisible();
     await expect(email).toBeDisabled();
 
-    // Then proceed
+    // Proceed with submission
     await page.getByRole('button', { name: 'CONFIRM & PROCEED' }).click();
+
+    await expect(page.getByText('Gift card successfully added')).toBeVisible();
 
 
 });
