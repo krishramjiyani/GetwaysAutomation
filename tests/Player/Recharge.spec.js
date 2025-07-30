@@ -1,119 +1,83 @@
 import { test, expect } from '@playwright/test';
 
-test('Complete flow: Login and Recharge using Pay By Card (Stripe)', async ({ page }) => {
+const login = async (page) => {
+  await page.goto('https://skynbliss.co/login', { timeout: 120000 });
+  await page.locator('input[name="emailPhone"]').fill('TestPlayer@gmail.com');
+  await page.getByRole('button', { name: 'Next' }).click();
+  await page.locator('input[name="password"]').fill('Test@123');
+  await page.getByRole('button', { name: 'Login' }).click();
+  await expect(page).toHaveTitle(/Getways/i);
+  await page.getByText('Recharge your account').waitFor({ state: 'visible' });
+};
 
-    await page.goto('https://skynbliss.co/login', { timeout: 120000, waitUntil: 'load' });
-
-    await page.locator('input[name="emailPhone"]').fill('TestPlayer@gmail.com');
-    await page.locator('button:has-text("Next")').click();
-    await expect(page.locator('h6')).toHaveText('Sign in to your Account');
-
-    await page.locator('input[name="password"]').fill('Test@123');
-    await page.locator('button:has-text("Login")').click();
-    await expect(page).toHaveTitle(/Getways/i);
-
-    await page.waitForURL('https://skynbliss.co/playerDashboard', { timeout: 10000 });
-
-    await page.locator('p.MuiTypography-root', { hasText: '50' });
-
-    await page.getByLabel('Payment Portal');
-
-    await page.waitForTimeout(2000);
-
-
-    await page.waitForSelector("//div[contains(., 'Pay By Card')]", { timeout: 60000 });
-
-
-    const stripeButton = page.locator("//p[normalize-space()='Pay By Card']");
-
-    await stripeButton.waitFor({ state: 'attached', timeout: 60000 });
-
-    await stripeButton.scrollIntoViewIfNeeded();
-    await stripeButton.waitFor({ state: 'visible', timeout: 60000 });
-
-    await stripeButton.click();
-
-    await page.waitForURL('https://skynbliss.co/stripe-payment', { timeout: 60000 });
-
-    const emailFrame = page.frameLocator('iframe').first();
-    await emailFrame.locator('input#email').waitFor({ state: 'visible', timeout: 60000 });
-    await emailFrame.locator('input#email').fill('testplayer@gmail.com');
-
-    const allFrames = page.frames();
-    let cardFrame;
-
-    for (const frame of allFrames) {
-        const input = await frame.$('input#cardNumber');
-        if (input) {
-            cardFrame = frame;
-            break;
-        }
-    }
-
-    if (!cardFrame) {
-        throw new Error('Card number iframe not found');
-    }
-
-    await cardFrame.waitForSelector('input#cardNumber', { timeout: 10000 });
-    await cardFrame.fill('input#cardNumber', '4242 4242 4242 4242');
-
-    let expiryFrame;
-    for (const frame of page.frames()) {
-        const input = await frame.$('input#cardExpiry');
-        if (input) {
-            expiryFrame = frame;
-            break;
-        }
-    }
-
-    if (!expiryFrame) throw new Error('Card expiry iframe not found');
-
-    // Fill expiry date
-    await expiryFrame.fill('input#cardExpiry', '04/42');
-
-
-    let cvcFrame;
-    for (const frame of page.frames()) {
-        const input = await frame.$('input#cardCvc');
-        if (input) {
-            cvcFrame = frame;
-            break;
-        }
-    }
-    if (!cvcFrame) throw new Error('Card CVC iframe not found');
-    await cvcFrame.fill('input#cardCvc', '123');
-
-    let nameFrame;
-    for (const frame of page.frames()) {
-        const input = await frame.$('input#billingName');
-        if (input) {
-            nameFrame = frame;
-            break;
-        }
-    }
-    if (!nameFrame) throw new Error('Billing name iframe not found');
-    await nameFrame.fill('input#billingName', 'Test Player');
-
-    let payFrame;
-    for (const frame of page.frames()) {
-        const btn = await frame.$('button[type="submit"]');
-        if (btn) {
-            payFrame = frame;
-            break;
-        }
-    }
-    if (!payFrame) throw new Error('Pay button iframe not found');
-
-    
-    const payBtn = payFrame.locator('button[type="submit"]', { hasText: 'Pay' });
-    await payBtn.waitFor({ state: 'visible', timeout: 20000 });
-    await payBtn.click();
-
-    await page.locator('h2').waitFor({ state: 'visible', timeout: 30000 });
-
-    await expect(page.locator('h2')).toHaveText('Completed Payment');
-    
-    await page.locator("//button[normalize-space()='Back']").click();
-
-    await expect(page).toHaveURL('https://skynbliss.co/playerDashboard');
+test.beforeEach(async ({ page }) => {
+  await login(page);
 });
+
+test('Wallet Recharge - Reject amount less than $30', async ({ page }) => {
+  await page.getByLabel('Add Transaction Note').fill('Trying recharge below min value');
+  await page.getByText('Payment Portal').click();
+  await page.locator('input[type="radio"][value="wallet"]').check();
+  await page.getByText('10', { exact: true }).click();
+  await page.getByRole('button', { name: 'Wallet Recharge' }).click();
+  await expect(page.getByText('Recharge amount must be at least $30.00.')).toBeVisible();
+});
+
+test('Wallet Recharge - Valid amount $30 passes', async ({ page }) => {
+  await page.getByLabel('Add Transaction Note').fill('Recharge of $30 through wallet');
+  await page.getByText('Payment Portal').click();
+  await page.locator('input[type="radio"][value="wallet"]').check();
+  await page.locator('button >> text=30').click();
+  await page.getByRole('button', { name: 'Wallet Recharge' }).click();
+  await expect(page.getByText(/Recharge Successful!/i)).toBeVisible();
+});
+
+test('Complete flow: Recharge using Pay By Card (Stripe)', async ({ page }) => {
+  await page.getByLabel('Add Transaction Note').fill('Recharge using Stripe card');
+  await page.getByLabel('Payment Portal');
+  await page.waitForTimeout(2000);
+
+  const stripeButton = page.locator("//p[normalize-space()='Pay By Card']");
+  await stripeButton.waitFor({ state: 'visible', timeout: 120000 });
+  await stripeButton.scrollIntoViewIfNeeded();
+  await stripeButton.click();
+
+  await page.waitForURL('https://skynbliss.co/stripe-payment', { timeout: 120000 });
+
+  const emailFrame = page.frameLocator('iframe').first();
+  await emailFrame.locator('input#email').fill('testplayer@gmail.com');
+
+  const findFrameWithSelector = async (selector) => {
+    for (const frame of page.frames()) {
+      if (await frame.$(selector)) return frame;
+    }
+    throw new Error(`${selector} iframe not found`);
+  };
+
+  const cardFrame = await findFrameWithSelector('input#cardNumber');
+  await cardFrame.fill('input#cardNumber', '4242 4242 4242 4242');
+
+  const expiryFrame = await findFrameWithSelector('input#cardExpiry');
+  await expiryFrame.fill('input#cardExpiry', '04/42');
+
+  const cvcFrame = await findFrameWithSelector('input#cardCvc');
+  await cvcFrame.fill('input#cardCvc', '123');
+
+  const nameFrame = await findFrameWithSelector('input#billingName');
+  await nameFrame.fill('input#billingName', 'Test Player');
+
+  const payFrame = await findFrameWithSelector('button[type="submit"]');
+  const payBtn = payFrame.locator('button[type="submit"]');
+  await payBtn.waitFor({ state: 'visible', timeout: 20000 });
+  await payBtn.click();
+
+  await page.locator('h2').waitFor({ state: 'visible', timeout: 30000 });
+  await expect(page.locator('h2')).toHaveText('Completed Payment');
+
+  await page.locator("//button[normalize-space()='Back']").click();
+  await expect(page).toHaveURL('https://skynbliss.co/playerDashboard');
+});
+
+
+
+
