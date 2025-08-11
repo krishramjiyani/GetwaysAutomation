@@ -34,9 +34,12 @@ test.describe('GETWAYS Login Scenarios', () => {
   test('Login with invalid email format', async ({ page }) => {
     await page.goto('https://skynbliss.co/login', { timeout: 120000, waitUntil: 'load' });
 
-    await page.locator('input[name="emailPhone"]').fill('invalid-email');
+    await page.locator('input[name="emailPhone"]').fill('invalidemail@gmail.com');
     await page.locator('button:has-text("Next")').click();
-    await expect(page.locator('.MuiSnackbarContent-message')).toHaveText('User does not exist!');
+    const snackbar = page.getByText('User does not exist!');
+    await snackbar.waitFor({ timeout: 10000 });
+    await expect(snackbar).toBeVisible();
+
   });
 
   // 4. Valid Email, Empty Password

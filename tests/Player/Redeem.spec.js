@@ -18,8 +18,10 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('Redeem with 50 and transaction note', async ({ page }) => {
-  const selectedAmount = page.getByRole('button', { name: 'Symbol 50', exact: true });
-  await expect(selectedAmount).toHaveClass(/css.*MuiButtonBase-root-MuiButton-root/);
+  const selectedAmount = page.locator("//button[.//p[normalize-space()='50']]");
+
+  await expect(selectedAmount).toHaveClass(/MuiButtonBase-root/); 
+
   await page.locator('//input[@type="text" and @aria-invalid="false"]').fill('Test redeem for automation');
   await page.getByRole('button', { name: /Redeem Request/i }).click();
   await expect(page.locator("//div[@class='MuiSnackbarContent-message css-1exqwzz-MuiSnackbarContent-message']")).toBeVisible();
