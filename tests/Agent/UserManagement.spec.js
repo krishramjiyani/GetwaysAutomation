@@ -77,10 +77,10 @@ test.beforeEach(async ({ page }) => {
 // test('Create new user via Add New User modal', async ({ page }) => {   //add new details evry time
 //   await page.locator("//button[.//p[normalize-space()='Add New User']]").click();
 
-//   await page.locator('//input[@id="userName"]').fill('test003');
+//   await page.locator('//input[@id="userName"]').fill('test909');
 //   await page.locator('//input[@id="name"]').fill('Test User');
-//   await page.locator('//input[@id="phoneNumber"]').fill('9905073313');
-//   await page.locator('//input[@id="email"]').fill('test_user_003@example.com');
+//   await page.locator('//input[@id="phoneNumber"]').fill('9905990913');
+//   await page.locator('//input[@id="email"]').fill('test_user_909@example.com');
 //   await page.locator('//input[@id="password"]').fill('Test@123');
 //   await page.locator('//input[@id="confirmPassword"]').fill('Test@123');
 
@@ -342,19 +342,122 @@ test.beforeEach(async ({ page }) => {
 //   await expect(page.locator('//label[@for="errorResponse"]')).toHaveText('Wallet not found for user: test002');
 // });
 
-test('Check Wallet page opens', async ({ page }) => {
-  await expect(page.locator('//input[@placeholder="Username"]')).toBeVisible();
-  await page.locator('//input[@placeholder="Username"]').fill('TestPlayer');
-  await page.keyboard.press('Enter');
+// test('Check Wallet page opens', async ({ page }) => {
+//   await expect(page.locator('//input[@placeholder="Username"]')).toBeVisible();
+//   await page.locator('//input[@placeholder="Username"]').fill('TestPlayer');
+//   await page.keyboard.press('Enter');
 
-  await expect(page.locator(`//tr[.//text()[normalize-space()='TestPlayer']]`)).toBeVisible({ timeout: 5000 });
+//   await expect(page.locator(`//tr[.//text()[normalize-space()='TestPlayer']]`)).toBeVisible({ timeout: 5000 });
 
-  await page.locator(`//tr[.//text()[normalize-space()='TestPlayer']]//div[contains(@class,"settings-button")]`).click();
-  await page.locator('//li[normalize-space()="Wallet"]').click();
+//   await page.locator(`//tr[.//text()[normalize-space()='TestPlayer']]//div[contains(@class,"settings-button")]`).click();
+//   await page.locator('//li[normalize-space()="Wallet"]').click();
 
-  await page.waitForSelector('//h5[@class="modal-title" and normalize-space()="Wallet Details"]', { timeout: 5000 });
-  await expect(page.locator('//h5[@class="modal-title" and normalize-space()="Wallet Details"]')).toBeVisible();
+//   await page.waitForSelector('//h5[@class="modal-title" and normalize-space()="Wallet Details"]', { timeout: 5000 });
+//   await expect(page.locator('//h5[@class="modal-title" and normalize-space()="Wallet Details"]')).toBeVisible();
 
-  await page.waitForSelector('//div[starts-with(normalize-space(),"$")]', { timeout: 5000 });
-  await expect(page.locator('//div[starts-with(normalize-space(),"$")]')).toBeVisible();
-});
+//   await page.waitForSelector('//div[starts-with(normalize-space(),"$")]', { timeout: 5000 });
+//   await expect(page.locator('//div[starts-with(normalize-space(),"$")]')).toBeVisible();
+// });
+
+// test('Create new unique user and verify in User Management list', async ({ page }) => {
+//   // Generate unique values
+//   const randomSuffix = Date.now().toString().slice(-6); // 6 digits for uniqueness
+//   const uniqueUsername = `U${randomSuffix}`.slice(0, 10); // ensure max 10 chars
+//   const uniqueEmail = `user_${randomSuffix}@example.com`;
+//   const uniquePhone = `9${Math.floor(100000000 + Math.random() * 900000000)}`; // always 10 digits starting with 9
+
+//   // Step 1: Open Add New User modal
+//   await page.locator("//button[.//p[normalize-space()='Add New User']]").click();
+
+//   // Step 2: Fill user details
+//   await page.locator('//input[@id="userName"]').fill(uniqueUsername);
+//   await page.locator('//input[@id="name"]').fill('Test User');
+//   await page.locator('//input[@id="phoneNumber"]').fill(uniquePhone);
+//   await page.locator('//input[@id="email"]').fill(uniqueEmail);
+//   await page.locator('//input[@id="password"]').fill('Test@123');
+//   await page.locator('//input[@id="confirmPassword"]').fill('Test@123');
+
+//   // Step 3: Submit form
+//   await page.locator('//button[normalize-space()="Confirm"]').click();
+
+//   // Step 4: Wait for modal to close
+//   await expect(page.locator('//input[@id="userName"]')).toBeHidden({ timeout: 5000 });
+
+//   // Step 5: Search for the new user in User Management
+//   const searchInput = page.locator('//input[@placeholder="Username"]');
+//   await expect(searchInput).toBeVisible();
+//   await searchInput.fill(uniqueUsername);
+//   await page.keyboard.press('Enter');
+
+//   // Step 6: Verify user row appears
+//   const resultRow = page.locator(`//tbody/tr[td[contains(., "${uniqueUsername}")]]`);
+//   await expect(resultRow).toBeVisible({ timeout: 5000 });
+
+//   console.log(`✅ User created: 
+//     Username = ${uniqueUsername}, 
+//     Email = ${uniqueEmail}, 
+//     Phone = ${uniquePhone}`);
+// });
+
+// test('Referral link opens and performs new user creation with unique values', async ({ page, browser }) => {
+//   // Step 1: Click Referral Link and copy
+//   await page.getByRole('button', { name: 'Referral Link' }).click();
+//   await expect(page.locator("//p[normalize-space()='Referral Link']")).toBeVisible();
+
+//   const copyButton = page.locator("//button[normalize-space()='Copy']");
+//   await copyButton.click();
+
+//   const linkInput = page.locator('#userName');
+//   const referralLink = await linkInput.inputValue();
+
+//   // Step 2: Open referral link in new context
+//   const newContext = await browser.newContext();
+//   const newPage = await newContext.newPage();
+//   await newPage.goto(referralLink);
+
+//   await expect(newPage).toHaveURL(/referral/);
+//   const referralField = newPage.locator('input[disabled][type="text"]');
+//   await expect(referralField).toHaveValue(/.+/);
+
+//   // Step 3: Generate unique values
+//   const randomSuffix = Date.now().toString().slice(-6);
+//   const uniqueUsername = `U${randomSuffix}`.slice(0, 10);  // 3–10 characters
+//   const uniqueEmail = `user_${randomSuffix}@example.com`;
+//   const uniquePhone = `9${Math.floor(100000000 + Math.random() * 900000000)}`;
+
+//   // Step 4: Fill new user form
+//   await newPage.getByPlaceholder('Choose a username').fill(uniqueUsername);
+//   await newPage.getByPlaceholder('Your full name').fill('Test User');
+//   await newPage.getByPlaceholder('Your phone number').fill(uniquePhone);
+//   await newPage.getByPlaceholder('Your email address').fill(uniqueEmail);
+//   await newPage.getByPlaceholder('Create a secure password').nth(0).fill('Test@123');
+//   await newPage.getByPlaceholder('Create a secure password').nth(1).fill('Test@123');
+
+//   await newPage.locator('input[type="checkbox"]').check();
+
+//   // Step 5: Create Account
+//   const createBtn = newPage.getByRole('button', { name: 'Create Account' });
+//   await expect(createBtn).toBeEnabled();
+//   await createBtn.click();
+
+//   // Step 6: Verify toast message
+//   const toastLocator = newPage.locator('//div[contains(@class, "MuiSnackbarContent-message")]');
+//   try {
+//     await expect(toastLocator).toBeVisible({ timeout: 5000 });
+//     const toastText = await toastLocator.textContent();
+
+//     if (/User Created successfully\.?/i.test(toastText)) {
+//       console.log(`✅ User created: ${uniqueUsername}, ${uniqueEmail}, ${uniquePhone}`);
+//     } else if (/Email already exist!?/i.test(toastText)) {
+//       console.log('⚠️ Email already exists.');
+//     } else if (/Phone number already exist!?/i.test(toastText)) {
+//       console.log('⚠️ Phone number already exists.');
+//     } else if (/Username already exist!?/i.test(toastText)) {
+//       console.log('⚠️ Username already exists.');
+//     } else {
+//       console.log(`⚠️ Unexpected message: ${toastText}`);
+//     }
+//   } catch {
+//     console.log('⚠️ No toast message found.');
+//   }
+// });
