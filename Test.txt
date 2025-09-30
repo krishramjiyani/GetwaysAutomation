@@ -361,3 +361,57 @@ test('GETWAYS Login flow test', async ({ page }) => {
 //     page.locator("//div[@class='MuiSnackbarContent-message css-1exqwzz-MuiSnackbarContent-message']")
 //   ).toBeVisible();
 // });
+
+
+// test('Verify all Recharge Records status filters()', async ({ page }) => {
+//   // ==== STEP 5: Agent Login ====
+//   await page.goto('https://skynbliss.co/login', { timeout: 120000 });
+//   await page.locator('input[name="emailPhone"]').fill('Agent123@gmail.com');
+//   await page.getByRole('button', { name: 'Next' }).click();
+//   await expect(page.locator('h6')).toHaveText('Sign in to your Account');
+//   await page.locator('input[name="password"]').fill('Agent@123');
+//   await page.getByRole('button', { name: 'Login' }).click();
+//   await expect(page).toHaveTitle(/Getways/i);
+
+//   // ==== STEP 6: Navigate to Recharge Records ====
+//   await page.getByText('Recharge Records', { exact: true }).click();
+//   await expect(page.locator("//div[@class='MuiBox-root css-1pccdic']")).toBeVisible();
+
+//   // ==== STEP 7: Loop through all filter statuses ====
+//   const statuses = [
+//     'All',
+//     'Pending Referral Link',
+//     'Pending Confirmation',
+//     'Confirmed',
+//     'Coins Credited',
+//     'Expired',
+//     'Failed Transaction'
+//   ];
+
+//   for (const status of statuses) {
+//     console.log(`🔍 Checking filter: ${status}`);
+
+//     // Open Filter
+//     await page.getByRole('button', { name: 'Filter' }).click();
+
+//     // Open Status dropdown
+//     const statusDropdown = page.getByRole('combobox').nth(1); // second combobox = Status
+//     await statusDropdown.click();
+
+//     // Select status option
+//     await page.getByRole('option', { name: status }).click();
+
+//     // Apply filter
+//     await page.getByRole('button', { name: 'Apply' }).click();
+
+//     // Verify that table reloads (at least 1 row or "no records")
+//     const tableRow = page.locator('tbody tr');
+//     await expect(tableRow.first()).toBeVisible({ timeout: 10000 });
+
+//     console.log(`✅ Verified filter applied successfully: ${status}`);
+//   }
+// });
+
+
+
+
